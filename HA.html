@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Cicor BLE Webview — Dark</title>
+
+<!-- iPad / iOS PWA Tweaks -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cicor BLE">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b0f12">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<link rel="apple-touch-icon" href="favicon.ico">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="application-name" content="Cicor BLE">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="theme-color" content="#0b0f12">
+
+
+<style>
+  :root{
+    /* Dark palette */
+    --bg:#0b0f12;
+    --card:#0f1720;
+    --elev:rgba(255,255,255,0.03);
+    --stroke:rgba(255,255,255,0.08);
+    --text:#e6eef6;
+    --muted:#95a3b4;
+    --accent:#00c2a8;
+    --led-off:#243140;
+    --ring:0 6px 24px rgba(0,0,0,.5);
+  }
+
+  /* Base */
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);
+    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+  *{box-sizing:border-box}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:6px}
+
+  /* Layout */
+  .wrap{min-height:100dvh; padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+  h1{margin:0;font-size:18px;letter-spacing:.2px;color:var(--accent)}
+
+  .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:20px}
+  @media (max-width:980px){ .grid{grid-template-columns:1fr} }
+
+  /* Karten / Panel */
+  .card{background:linear-gradient(180deg, var(--elev), transparent); border:1px solid var(--stroke); border-radius:14px; box-shadow:var(--ring)}
+  .card h2{margin:0;padding:12px 14px;font-size:14px;color:#cfe6ee;border-bottom:1px solid var(--stroke);background:rgba(255,255,255,0.02);border-radius:14px 14px 0 0}
+  .card .body{padding:14px}
+
+  /* MAIN: Bild + Overlay */
+  .device-stage{display:flex;align-items:center;justify-content:center}
+  .ear-wrap{position:relative; width:min(560px, 100%); aspect-ratio:1/1;}
+  .ear-wrap img{width:100%; height:100%; display:block; border-radius:12px; object-fit:cover;}
+  .ear-overlay{position:absolute; inset:0; width:100%; height:100%;}
+  .pad{fill:rgba(255,255,255,0.02);stroke:rgba(255,255,255,0.06);stroke-width:2;transition:all 160ms ease}
+  .pad.active{fill:var(--accent);stroke:rgba(0,0,0,0.35);transform:scale(1.05);filter:drop-shadow(0 8px 18px rgba(0,194,168,0.22))}
+  .led-circle{fill:var(--led-off);stroke:rgba(255,255,255,0.10);stroke-width:1.6}
+  .led-glow{filter:drop-shadow(0 8px 24px rgba(0,0,0,.35))}
+
+  /* Collapsible Panel: Status & Steuerung */
+  details.panel{ background:linear-gradient(180deg, var(--elev), transparent);
+    border:1px solid var(--stroke); border-radius:14px; box-shadow:var(--ring); overflow:hidden }
+  details.panel > summary{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:12px 14px; cursor:pointer; list-style:none; user-select:none;
+    background:rgba(255,255,255,0.02); border-bottom:1px solid var(--stroke);
+  }
+  details.panel > summary::-webkit-details-marker{display:none}
+  .sum-left{display:flex; gap:12px; align-items:center}
+  .sum-title{font-size:14px; color:#cfe6ee; font-weight:600}
+  .sum-status .big{font-size:14px;font-weight:600}
+  .sum-status .muted{color:var(--muted); font-size:12px}
+  .sum-right{display:flex; align-items:center; gap:10px}
+  .chev{width:10px;height:10px;border-right:2px solid #9fb4c3;border-bottom:2px solid #9fb4c3;transform:rotate(45deg); transition:transform 160ms ease}
+  details[open] .chev{ transform:rotate(-135deg); }
+
+  .panel .body{padding:14px}
+  .muted{color:var(--muted)}
+  .status-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:8px}
+  .status-box{padding:10px;border:1px solid var(--stroke);border-radius:10px;background:rgba(255,255,255,0.02);text-align:center}
+  .status-box .lbl{font-size:12px;color:var(--muted)}
+  .status-box .val{font-weight:700;margin-top:4px}
+  .row{display:flex;gap:12px;align-items:center;justify-content:space-between;margin:10px 0;flex-wrap:wrap}
+
+  /* Controls */
+  .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  button.btn{
+    background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.2));
+    border:1px solid var(--stroke);
+    color:var(--text); padding:12px 16px; border-radius:12px; cursor:pointer; font-size:15px;
+    touch-action: manipulation; min-width:44px; min-height:44px;
+  }
+  button.btn.primary{color:var(--accent); border-color:transparent}
+  button.btn[disabled]{opacity:.5; cursor:not-allowed}
+
+  .rgb{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .chip{display:flex;gap:8px;align-items:center;padding:10px 12px;border-radius:12px;border:1px solid var(--stroke);background:rgba(255,255,255,0.02);min-height:44px}
+  .chip input{width:20px;height:20px}
+  .dot{width:18px;height:18px;border-radius:50%;border:1px solid var(--stroke)}
+  .dot.r{background:#3d1515}
+  .dot.g{background:#153d19}
+  .dot.b{background:#13223d}
+  .led-preview{width:22px;height:22px;border-radius:50%;border:1px solid var(--stroke);background:var(--led-off);box-shadow:inset 0 0 0 2px rgba(255,255,255,.08)}
+
+  .log{height:160px;overflow:auto;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+       font-size:13px;background:rgba(255,255,255,0.02);border:1px solid var(--stroke);border-radius:10px;padding:10px;-webkit-overflow-scrolling:touch}
+  .helper{background:rgba(255,204,102,0.08);border:1px solid rgba(255,204,102,0.35);color:#ffe7b3;padding:10px;border-radius:10px;font-size:13px}
+
+  /* Touch-friendly on tablets */
+  @media (pointer:coarse){ button.btn{padding:14px 18px;font-size:16px} .chip{padding:12px 14px} .status-box{padding:12px} }
+  @media (prefers-reduced-motion:reduce){ .pad{transition:none} }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Cicor BLE Webview</h1>
+      <!-- Connect/Disconnect sind im Panel -->
+    </header>
+
+    <div class="grid">
+      <!-- MAIN: Dein Bild + Overlay -->
+      <div class="card">
+        <h2>Ohr & Hörgerät</h2>
+        <div class="body device-stage">
+          <figure class="ear-wrap">
+            <!-- Dein Bild -->
+            <img src="HA_Ohr.png" alt="Ohr mit Hörgerät">
+
+            <!-- Responsive SVG-Overlay (Pads/LED leuchten bei BLE-Events) -->
+            <svg class="ear-overlay led-glow" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <!-- drei Tasten links am Gerät (Positionen ggf. anpassen) -->
+              <circle id="pad1" class="pad" cx="190" cy="460" r="38"/>
+              <circle id="pad2" class="pad" cx="190" cy="540" r="38"/>
+              <circle id="pad3" class="pad" cx="190" cy="620" r="38"/>
+
+              <!-- Seiten-LED -->
+              <circle id="ledCircle" class="led-circle" cx="300" cy="640" r="26"/>
+            </svg>
+          </figure>
+        </div>
+      </div>
+
+      <!-- COLLAPSIBLE: Status & Steuerung -->
+      <details id="ctrlPanel" class="panel" open>
+        <summary>
+          <div class="sum-left">
+            <div class="sum-title">Status &amp; Steuerung</div>
+            <div class="sum-status">
+              <div id="deviceName" class="big">Nicht verbunden</div>
+              <div id="connState" class="muted">Status: offline</div>
+            </div>
+          </div>
+          <div class="sum-right">
+            <div class="led-preview" id="ledPreview" title="LED Vorschau"></div>
+            <div class="chev" aria-hidden="true"></div>
+          </div>
+        </summary>
+
+        <div class="body">
+          <div class="row">
+            <div class="controls" aria-label="Verbindung">
+              <button id="connectBtn" class="btn primary">Verbinden</button>
+              <button id="disconnectBtn" class="btn" disabled>Trennen</button>
+            </div>
+            <div class="muted" style="font-size:12px">Web Bluetooth benötigt <strong>HTTPS</strong> oder localhost.</div>
+          </div>
+
+          <div class="muted" style="margin-top:6px;font-size:13px">Buttons (live):</div>
+          <div class="status-grid">
+            <div class="status-box"><div class="lbl">Button 1</div><div id="b1" class="val">—</div></div>
+            <div class="status-box"><div class="lbl">Button 2</div><div id="b2" class="val">—</div></div>
+            <div class="status-box"><div class="lbl">Button 3</div><div id="b3" class="val">—</div></div>
+          </div>
+
+          <div class="row">
+            <div class="muted" style="font-size:13px">RGB‑LED</div>
+            <div class="rgb">
+              <label class="chip"><span class="dot r"></span><input id="ledR" type="checkbox" aria-label="LED Rot">R</label>
+              <label class="chip"><span class="dot g"></span><input id="ledG" type="checkbox" aria-label="LED Grün">G</label>
+              <label class="chip"><span class="dot b"></span><input id="ledB" type="checkbox" aria-label="LED Blau">B</label>
+              <input id="colorPicker" type="color" value="#000000" title="Farbwähler" style="height:44px;border-radius:12px;border:1px solid var(--stroke);background:transparent;color:var(--text)"/>
+              <button id="allOff" class="btn" style="padding:10px 12px">alle aus</button>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="muted" style="font-size:13px">Info</div>
+            <div style="display:flex;gap:16px;flex-wrap:wrap">
+              <div style="font-size:13px"><strong>SW:</strong> <span id="swVersion">–</span></div>
+              <div style="font-size:13px"><strong>Temp:</strong> <span id="temp">–</span></div>
+            </div>
+          </div>
+
+          <div id="iosHelper" class="helper" style="display:none">
+            <strong>Hinweis:</strong> In diesem Browser ist Web Bluetooth nicht verfügbar.  
+            Du kannst die Simulation nutzen oder einen iPad‑Browser/Wrapper verwenden, der BLE unterstützt.
+          </div>
+
+          <div class="muted" style="margin-top:8px;font-size:13px">Simulation (ohne Gerät)</div>
+          <div class="row">
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn" id="simB1" style="padding:10px 12px">Sim. B1</button>
+              <button class="btn" id="simB2" style="padding:10px 12px">Sim. B2</button>
+              <button class="btn" id="simB3" style="padding:10px 12px">Sim. B3</button>
+            </div>
+          </div>
+
+          <div class="log" id="log" aria-live="polite">Log starten…</div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+<script>
+/* --------------------------------------------------------------------------
+   BLE‑Setup kompatibel zu deinem bisherigen Tool/Demo:
+   Service: 0000fe40‑cc7a‑482a‑984a‑7f2ed5b3e58f
+   Buttons (Notify): 0000fe42‑...‑ed01/ed02/ed03  (Byte1 = 1 gedrückt / 0 losgelassen)
+   SW‑Version (Notify, Text): 0000fe42‑...‑ed04
+   Temperatur (Notify, Float32 LE /10): 0000fe42‑...‑ed05
+   RGB‑LED (Write): 0000fe41‑...‑ed19  Payload: [0x00, channel, 0x00|0x01]  (0x01=Rot, 0x02=Blau, 0x03=Grün)
+   Diese Zuordnung entspricht deiner vorhandenen Implementierung. :contentReference[oaicite:0]{index=0} :contentReference[oaicite:1]{index=1}
+--------------------------------------------------------------------------- */
+
+const NAME_PREFIX = 'CICOR';
+const SERVICE_UUID = '0000fe40-cc7a-482a-984a-7f2ed5b3e58f';
+
+const CH_BTN1_UUID = '0000fe42-8e22-4541-9d4c-21edae82ed01';
+const CH_BTN2_UUID = '0000fe42-8e22-4541-9d4c-21edae82ed02';
+const CH_BTN3_UUID = '0000fe42-8e22-4541-9d4c-21edae82ed03';
+const CH_SWV_UUID  = '0000fe42-8e22-4541-9d4c-21edae82ed04';
+const CH_TEMP_UUID = '0000fe42-8e22-4541-9d4c-21edae82ed05';
+const CH_LED_UUID  = '0000fe41-8e22-4541-9d4c-21edae82ed19';
+
+const CH_RED  = 0x01;
+const CH_BLUE = 0x02;
+const CH_GRN  = 0x03;
+
+/* iPad / iOS detection */
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.platform)
+            || (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+
+/* UI refs */
+const logEl   = document.getElementById('log');
+const deviceNameEl = document.getElementById('deviceName');
+const connStateEl  = document.getElementById('connState');
+const connectBtn   = document.getElementById('connectBtn');
+const disconnectBtn= document.getElementById('disconnectBtn');
+const b1 = document.getElementById('b1');
+const b2 = document.getElementById('b2');
+const b3 = document.getElementById('b3');
+const pad1 = document.getElementById('pad1');
+const pad2 = document.getElementById('pad2');
+const pad3 = document.getElementById('pad3');
+const ledCircle = document.getElementById('ledCircle');
+const ledPreview = document.getElementById('ledPreview');
+const ledR = document.getElementById('ledR');
+const ledG = document.getElementById('ledG');
+const ledB = document.getElementById('ledB');
+const colorPicker = document.getElementById('colorPicker');
+const allOffBtn = document.getElementById('allOff');
+const swVersionEl = document.getElementById('swVersion');
+const tempEl = document.getElementById('temp');
+const iosHelper = document.getElementById('iosHelper');
+
+/* BLE state */
+let device = null, server = null, service = null;
+let chBtn1 = null, chBtn2 = null, chBtn3 = null, chSwv = null, chTemp = null, chLed = null;
+
+function log(...msg){
+  const t = new Date().toLocaleTimeString();
+  logEl.textContent = `${t} — ${msg.join(' ')}\n` + logEl.textContent;
+}
+
+function setConn(online, name){
+  deviceNameEl.textContent = name || (online ? 'Verbunden' : 'Nicht verbunden');
+  connStateEl.textContent = online ? 'Status: verbunden' : 'Status: offline';
+  connectBtn.disabled = online;
+  disconnectBtn.disabled = !online;
+}
+function setPad(padEl, on){ on ? padEl.classList.add('active') : padEl.classList.remove('active'); }
+function currentColor(){
+  const r = ledR.checked ? 255 : 0;
+  const g = ledG.checked ? 255 : 0;
+  const b = ledB.checked ? 255 : 0;
+  return `rgb(${r},${g},${b})`;
+}
+function updateLedVisual(){
+  const col = currentColor();
+  ledCircle.setAttribute('fill', col);
+  ledPreview.style.background = col;
+}
+
+/* Connect / Disconnect */
+async function connectBLE(){
+  try{
+    if(!navigator.bluetooth){
+      log('Web Bluetooth nicht verfügbar.');
+      if(IS_IOS){ iosHelper.style.display = 'block'; }
+      return;
+    }
+    log('Gerätesuche…');
+    device = await navigator.bluetooth.requestDevice({
+      filters: [{ namePrefix: NAME_PREFIX }],
+      optionalServices: [SERVICE_UUID]
+    });
+    device.addEventListener('gattserverdisconnected', onDisconnected);
+    deviceNameEl.textContent = device.name || device.id || 'Gerät';
+    log('Ausgewählt:', device.name || device.id);
+
+    server  = await device.gatt.connect();
+    setConn(true, device.name || device.id);
+    log('GATT verbunden, lade Service/Characteristics…');
+
+    service = await server.getPrimaryService(SERVICE_UUID);
+    const chars = await service.getCharacteristics();
+
+    chBtn1 = chars.find(c=>c.uuid.toLowerCase()===CH_BTN1_UUID);
+    chBtn2 = chars.find(c=>c.uuid.toLowerCase()===CH_BTN2_UUID);
+    chBtn3 = chars.find(c=>c.uuid.toLowerCase()===CH_BTN3_UUID);
+    chSwv  = chars.find(c=>c.uuid.toLowerCase()===CH_SWV_UUID);
+    chTemp = chars.find(c=>c.uuid.toLowerCase()===CH_TEMP_UUID);
+    chLed  = chars.find(c=>c.uuid.toLowerCase()===CH_LED_UUID);
+
+    await startNotifications();
+    log('Bereit.');
+  }catch(e){
+    log('Fehler beim Verbinden:', e.message || e);
+    setConn(false);
+  }
+}
+function onDisconnected(){ log('Gerät getrennt'); setConn(false); clearHandles(); }
+function clearHandles(){ chBtn1=chBtn2=chBtn3=chSwv=chTemp=chLed=null; }
+async function disconnect(){ try{ if(device && device.gatt.connected){ device.gatt.disconnect(); } }catch{} setConn(false); log('Getrennt.'); }
+
+/* Notifications */
+async function startNotifications(){
+  const onBtn = (elTxt, padEl) => e => {
+    try{
+      const v = e.target.value.getUint8(1); // Byte1 = 1/0 (pressed/released)
+      elTxt.textContent = v===1 ? 'gedrückt' : 'losgelassen';
+      setPad(padEl, v===1);
+    }catch(err){ log('Notif‑Parse‑Fehler:', err.message); }
+  };
+  if(chBtn1){ await chBtn1.startNotifications(); chBtn1.addEventListener('characteristicvaluechanged', onBtn(b1,pad1), {passive:true}); }
+  if(chBtn2){ await chBtn2.startNotifications(); chBtn2.addEventListener('characteristicvaluechanged', onBtn(b2,pad2), {passive:true}); }
+  if(chBtn3){ await chBtn3.startNotifications(); chBtn3.addEventListener('characteristicvaluechanged', onBtn(b3,pad3), {passive:true}); }
+
+  if(chSwv){
+    await chSwv.startNotifications();
+    chSwv.addEventListener('characteristicvaluechanged', e=>{
+      const dec = new TextDecoder();
+      swVersionEl.textContent = dec.decode(e.target.value.buffer || e.target.value);
+    }, {passive:true});
+  }
+  if(chTemp){
+    await chTemp.startNotifications();
+    chTemp.addEventListener('characteristicvaluechanged', e=>{
+      const dv = new DataView(e.target.value.buffer);
+      const floatRaw = dv.getFloat32(0, true);
+      const t = floatRaw/10;
+      tempEl.textContent = `${t.toFixed(1)} °C`;
+    }, {passive:true});
+  }
+}
+
+/* LED write (RGB 1‑Bit pro Kanal) */
+async function writeLedChannel(channel, on){
+  updateLedVisual(); // sofortige UI
+  if(!chLed){ log('LED‑Characteristic nicht gefunden — nur UI aktualisiert.'); return; }
+  try{
+    const payload = new Uint8Array([0x00, channel, on ? 0x01 : 0x00]);
+    await chLed.writeValue(payload);
+    log(`LED ch=${channel} -> ${on ? 'ein' : 'aus'}`);
+  }catch(e){ log('LED‑Write‑Fehler:', e.message); }
+}
+function syncFromCheckboxes(){
+  writeLedChannel(CH_RED,  ledR.checked);
+  writeLedChannel(CH_GRN,  ledG.checked);
+  writeLedChannel(CH_BLUE, ledB.checked);
+}
+function setFromColor(hex){
+  const r = parseInt(hex.slice(1,3),16) > 127;
+  const g = parseInt(hex.slice(3,5),16) > 127;
+  const b = parseInt(hex.slice(5,7),16) > 127;
+  ledR.checked = r; ledG.checked = g; ledB.checked = b;
+  updateLedVisual();
+  syncFromCheckboxes();
+}
+
+/* UI wiring */
+connectBtn.addEventListener('click', connectBLE, {passive:true});
+disconnectBtn.addEventListener('click', disconnect, {passive:true});
+
+ledR.addEventListener('change', syncFromCheckboxes, {passive:true});
+ledG.addEventListener('change', syncFromCheckboxes, {passive:true});
+ledB.addEventListener('change', syncFromCheckboxes, {passive:true});
+colorPicker.addEventListener('input', e=> setFromColor(e.target.value), {passive:true});
+allOffBtn.addEventListener('click', ()=>{ ledR.checked=ledG.checked=ledB.checked=false; syncFromCheckboxes(); }, {passive:true});
+
+/* Simulation (touchfreundlich) */
+const sim = (box, pad)=>{ box.textContent='gedrückt'; setPad(pad,true); setTimeout(()=>{ box.textContent='losgelassen'; setPad(pad,false); },700); };
+document.getElementById('simB1').addEventListener('pointerdown', ()=>sim(b1,pad1), {passive:true});
+document.getElementById('simB2').addEventListener('pointerdown', ()=>sim(b2,pad2), {passive:true});
+document.getElementById('simB3').addEventListener('pointerdown', ()=>sim(b3,pad3), {passive:true});
+
+/* Init */
+setConn(false);
+updateLedVisual();
+if(IS_IOS && !('bluetooth' in navigator)){ iosHelper.style.display = 'block'; }
+log('UI bereit. Bild + Overlay, Collapsible Panel, Dark‑Mode, iPad‑optimiert.');
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js")
+      .then(reg => console.log("SW registriert:", reg.scope))
+      .catch(err => console.warn("SW Fehler:", err));
+  });
+}
+</script>
+</body>
+</html>

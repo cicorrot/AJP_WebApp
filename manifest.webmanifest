@@ -1,0 +1,17 @@
+{
+  "name": "Cicor BLE Webview",
+  "short_name": "Cicor BLE",
+  "description": "BLE Web-App für Hörgerät – iPad-optimiert, Dark Mode.",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b0f12",
+  "theme_color": "#0b0f12",
+  "orientation": "any",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "categories": ["health", "medical", "utilities"]
+}
