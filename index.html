@@ -6,7 +6,7 @@
   <title>Cicor BLE Webview — Dark</title>
 
   <!-- PWA / Manifest -->
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="./manifest.json">
 
   <!-- iPad / iOS PWA Tweaks -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -15,8 +15,8 @@
   <meta name="theme-color" content="#0b0f12">
 
   <!-- Icons: Fallback Favicon + iOS Touch Icon (optional zusätzlich zu Manifest-Icons) -->
-  <link rel="icon" href="/favicon.ico" type="image/x-icon">
-  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link rel="icon" href="./favicon.ico" type="image/x-icon">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
 
   <style>
     :root{
@@ -110,7 +110,7 @@
         <h2>Ohr & Hörgerät</h2>
         <div class="body device-stage">
           <figure class="ear-wrap">
-            <img src="/icons/HA_Ohr.png" alt="Ohr mit Hörgerät">
+            <img src="./icons/HA_Ohr.png" alt="Ohr mit Hörgerät">
             <svg class="ear-overlay led-glow" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <circle id="pad1" class="pad" cx="190" cy="460" r="38"/>
               <circle id="pad2" class="pad" cx="190" cy="540" r="38"/>
@@ -373,7 +373,7 @@
     /* PWA: Service Worker Registration (Pfad wie im Beispiel) */
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/service-worker.js")
+        navigator.serviceWorker.register("./service-worker.js")
           .then(reg => console.log("SW registriert:", reg.scope))
           .catch(err => console.warn("SW Fehler:", err));
       });
