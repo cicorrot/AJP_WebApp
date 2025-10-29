@@ -3,9 +3,9 @@ importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.5.4/workbox
 self.skipWaiting();
 workbox.core.clientsClaim();
 
-/* WICHTIG: nur relative Pfade (./...), KEIN '/' */
+
 workbox.precaching.precacheAndRoute([
-  // { url: '/', revision: '1' },        // ❌ Entfernen! verursacht https://cicorrot.github.io/ (404)
+
   { url: './index.html',          revision: '3' },
   { url: './manifest.json',       revision: '2' },
   { url: './favicon.ico',         revision: '1' },
