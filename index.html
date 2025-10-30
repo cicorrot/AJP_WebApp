@@ -2,125 +2,108 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Cicor BLE Webview</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+  <title>Cicor BLE — Hearing Aid</title>
 
-  <!-- PWA / Manifest -->
+  <!-- PWA Meta -->
   <link rel="manifest" href="./manifest.json">
-
-  <!-- iPad / iOS PWA Tweaks -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Cicor BLE">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#0b0f12">
-
-  <!-- Icons: fallback favicon + optional iOS touch icon (in addition to manifest icons) -->
   <link rel="icon" href="./favicon.ico" type="image/x-icon">
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
 
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <h1>Cicor BLE Webview</h1>
-      <!-- Connect/Disconnect live in the panel -->
-    </header>
+  <main class="stage">
+    <div class="card device-card">
+      <h2>Ear & Hearing Aid</h2>
+      <div class="body device-stage">
+        <figure class="ear-wrap">
+          <img src="./icons/HA_Ohr.png" alt="Ear with hearing aid">
+          <svg class="ear-overlay led-glow" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle id="pad1" class="pad" cx="254" cy="416" r="30"></circle>
+            <circle id="pad2" class="pad" cx="257" cy="514" r="30"></circle>
+            <circle id="pad3" class="pad" cx="272" cy="615" r="30"></circle>
+            <circle id="ledCircle" class="led-glow" cx="260" cy="330" r="26"></circle>
+          </svg>
+        </figure>
+      </div>
+    </div>
+  </main>
 
-    <div class="grid">
-      <!-- MAIN: Image + Overlay -->
-      <div class="card">
-        <h2>Hearing Aid</h2>
-        <div class="body device-stage">
-          <figure class="ear-wrap">
-            <!-- Your image -->
-            <img src="./icons/HA_Ohr.png" alt="Ear with hearing aid">
+  <!-- Bottom Sheet: Status & Controls -->
+  <details id="ctrlPanel" class="sheet">
+    <summary class="sheet-summary">
+      <div class="grab"></div>
+      <div class="sum-left">
+        <div class="sum-title">Status & Controls</div>
+        <div class="sum-status">
+          <div id="deviceName" class="big">Not connected</div>
+          <div id="connState" class="muted">Status: offline</div>
+        </div>
+      </div>
+      <div class="sum-right">
+        <div class="led-preview" id="ledPreview" title="LED preview"></div>
+        <div class="chev" aria-hidden="true"></div>
+      </div>
+    </summary>
 
-            <!-- Responsive SVG overlay (pads/LED light up on BLE events) -->
-            <svg class="ear-overlay led-glow" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <!-- three buttons on the device (adjust positions if needed) -->
-              <circle id="pad1" class="pad" cx="254" cy="416" r="30"></circle>
-              <circle id="pad2" class="pad" cx="257" cy="514" r="30"></circle>
-              <circle id="pad3" class="pad" cx="272" cy="615" r="30"></circle>
+    <div class="sheet-body">
+      <div class="row">
+        <div class="controls" aria-label="Connection">
+          <button id="connectBtn" class="btn primary">Connect</button>
+          <button id="disconnectBtn" class="btn" disabled>Disconnect</button>
+        </div>
+        <div class="note">Web Bluetooth requires <strong>HTTPS</strong> or localhost.</div>
+      </div>
 
-              <!-- side LED -->
-              <circle id="ledCircle" class="led-glow" cx="260" cy="330" r="26"></circle>
-            </svg>
-          </figure>
+      <div class="label-muted">Buttons (live):</div>
+      <div class="status-grid">
+        <div class="status-box"><div class="lbl">Button 1</div><div id="b1" class="val">—</div></div>
+        <div class="status-box"><div class="lbl">Button 2</div><div id="b2" class="val">—</div></div>
+        <div class="status-box"><div class="lbl">Button 3</div><div id="b3" class="val">—</div></div>
+      </div>
+
+      <div class="row">
+        <div class="label-muted">RGB LED</div>
+        <div class="rgb">
+          <label class="chip"><span class="dot r"></span><input id="ledR" type="checkbox" aria-label="LED Red">R</label>
+          <label class="chip"><span class="dot g"></span><input id="ledG" type="checkbox" aria-label="LED Green">G</label>
+          <label class="chip"><span class="dot b"></span><input id="ledB" type="checkbox" aria-label="LED Blue">B</label>
+          <input id="colorPicker" type="color" value="#000000" title="Color picker" class="color-input"/>
+          <button id="allOff" class="btn btn-compact">all off</button>
         </div>
       </div>
 
-      <!-- COLLAPSIBLE: Status & Controls -->
-      <details id="ctrlPanel" class="panel" open>
-        <summary>
-          <div class="sum-left">
-            <div class="sum-title">Status & Controls</div>
-            <div class="sum-status">
-              <div id="deviceName" class="big">Not connected</div>
-              <div id="connState" class="muted">Status: offline</div>
-            </div>
-          </div>
-          <div class="sum-right">
-            <div class="led-preview" id="ledPreview" title="LED preview"></div>
-            <div class="chev" aria-hidden="true"></div>
-          </div>
-        </summary>
-
-        <div class="body">
-          <div class="row">
-            <div class="controls" aria-label="Connection">
-              <button id="connectBtn" class="btn primary">Connect</button>
-              <button id="disconnectBtn" class="btn" disabled>Disconnect</button>
-            </div>
-            <div class="note">Web Bluetooth requires <strong>HTTPS</strong> or localhost.</div>
-          </div>
-
-          <div class="label-muted">Buttons (live):</div>
-          <div class="status-grid">
-            <div class="status-box"><div class="lbl">Button 1</div><div id="b1" class="val">—</div></div>
-            <div class="status-box"><div class="lbl">Button 2</div><div id="b2" class="val">—</div></div>
-            <div class="status-box"><div class="lbl">Button 3</div><div id="b3" class="val">—</div></div>
-          </div>
-
-          <div class="row">
-            <div class="label-muted">RGB LED</div>
-            <div class="rgb">
-              <label class="chip"><span class="dot r"></span><input id="ledR" type="checkbox" aria-label="LED Red">R</label>
-              <label class="chip"><span class="dot g"></span><input id="ledG" type="checkbox" aria-label="LED Green">G</label>
-              <label class="chip"><span class="dot b"></span><input id="ledB" type="checkbox" aria-label="LED Blue">B</label>
-              <input id="colorPicker" type="color" value="#000000" title="Color picker" class="color-input"/>
-              <button id="allOff" class="btn btn-compact">all off</button>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="label-muted">Info</div>
-            <div class="info-pills">
-              <div><strong>SW:</strong> <span id="swVersion">–</span></div>
-              <div><strong>Temp:</strong> <span id="temp">–</span></div>
-            </div>
-          </div>
-
-          <div id="iosHelper" class="helper" style="display:none">
-            <strong>Note:</strong> Web Bluetooth is not available in this browser.
-            You can use the simulation or an iPad browser/wrapper that supports BLE.
-          </div>
-
-          <div class="label-muted" style="margin-top:8px">Simulation (no device)</div>
-          <div class="row">
-            <div class="sim-controls">
-              <button class="btn btn-compact" id="simB1">Sim B1</button>
-              <button class="btn btn-compact" id="simB2">Sim B2</button>
-              <button class="btn btn-compact" id="simB3">Sim B3</button>
-            </div>
-          </div>
-
-          <div class="log" id="log" aria-live="polite">Starting log…</div>
+      <div class="row">
+        <div class="label-muted">Info</div>
+        <div class="info-pills">
+          <div><strong>SW:</strong> <span id="swVersion">–</span></div>
+          <div><strong>Temp:</strong> <span id="temp">–</span></div>
         </div>
-      </details>
-    </div>
-  </div>
+      </div>
 
-  <script src="./app.js"></script>
+      <div id="iosHelper" class="helper" style="display:none">
+        <strong>Note:</strong> Web Bluetooth is not available in this browser.
+        You can use the simulation or a tablet browser/wrapper that supports BLE.
+      </div>
+
+      <div class="label-muted" style="margin-top:8px">Simulation (no device)</div>
+      <div class="row">
+        <div class="sim-controls">
+          <button class="btn btn-compact" id="simB1">Sim B1</button>
+          <button class="btn btn-compact" id="simB2">Sim B2</button>
+          <button class="btn btn-compact" id="simB3">Sim B3</button>
+        </div>
+      </div>
+
+      <div class="log" id="log" aria-live="polite">Starting log…</div>
+    </div>
+  </details>
+
+  <script src="./app.js" defer></script>
 </body>
 </html>
