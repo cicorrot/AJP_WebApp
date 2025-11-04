@@ -45,12 +45,54 @@ let device = null, server = null, service = null;
 let chBtn1 = null, chBtn2 = null, chBtn3 = null, chSwv = null, chTemp = null, chLed = null;
 
 /* -----------------------------------------------------------------------------
+   Wake Lock (Screen on) — Variante A
+----------------------------------------------------------------------------- */
+let wakeLock = null;
+let wakeRequested = false; // merkt sich, ob der User es wollte (Connect gedrückt)
+
+async function requestWakeLock() {
+  if (!('wakeLock' in navigator)) {
+    log('Wake Lock API not supported — screen may sleep.');
+    return;
+  }
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    wakeRequested = true;
+    log('Wake Lock active (screen will stay on).');
+
+    // Falls das System den Wake Lock entzieht (z. B. App in Hintergrund, Akku kritisch)
+    wakeLock.addEventListener('release', () => {
+      log('Wake Lock released by system.');
+      wakeLock = null;
+    });
+  } catch (err) {
+    log('Wake Lock request failed:', err.name || err.message || err);
+  }
+}
+
+async function releaseWakeLock() {
+  wakeRequested = false;
+  try { await wakeLock?.release(); } catch {}
+  wakeLock = null;
+  log('Wake Lock released (by app).');
+}
+
+// Wenn die Seite wieder sichtbar wird und der User WakeLock wollte → erneut anfordern
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && wakeRequested && !wakeLock) {
+    requestWakeLock();
+  }
+});
+
+/* -----------------------------------------------------------------------------
    Helpers
 ----------------------------------------------------------------------------- */
 function log(...msg){
   const t = new Date().toLocaleTimeString();
-  logEl.textContent = `${t} — ${msg.join(' ')}\n` + logEl.textContent;
+  const line = `${t} — ${msg.join(' ')}`;
+  logEl.innerHTML = `<br>${line}` + logEl.innerHTML;
 }
+
 function setConn(online, name){
   deviceNameEl.textContent = name || (online ? 'Connected' : 'Not connected');
   connStateEl.textContent = online ? 'Status: connected' : 'Status: offline';
@@ -113,6 +155,8 @@ function onDisconnected(){
   log('Device disconnected');
   setConn(false);
   clearHandles();
+  // Sicherheit: bei Disconnect den WakeLock freigeben
+  releaseWakeLock();
 }
 function clearHandles(){ chBtn1=chBtn2=chBtn3=chSwv=chTemp=chLed=null; }
 async function disconnect(){
@@ -121,6 +165,8 @@ async function disconnect(){
   }catch{}
   setConn(false);
   log('Disconnected.');
+  // WakeLock freigeben, wenn der Nutzer trennt
+  releaseWakeLock();
 }
 
 /* -----------------------------------------------------------------------------
@@ -185,8 +231,17 @@ function setFromColor(hex){
 /* -----------------------------------------------------------------------------
    Events & Boot
 ----------------------------------------------------------------------------- */
-connectBtn.addEventListener('click', connectBLE, {passive:true});
-disconnectBtn.addEventListener('click', disconnect, {passive:true});
+// Wichtig: Wir ersetzen die bisherigen Click-Handler, damit wir beim Connect
+// zuerst (im User-Gesture) den WakeLock anfordern:
+connectBtn.addEventListener('click', async () => {
+  await requestWakeLock();  // versucht den Bildschirm wach zu halten
+  connectBLE();             // dann verbinden
+}, {passive:true});
+
+disconnectBtn.addEventListener('click', () => {
+  disconnect();             // trennt und gibt WakeLock frei
+}, {passive:true});
+
 ledR.addEventListener('change', syncFromCheckboxes, {passive:true});
 ledG.addEventListener('change', syncFromCheckboxes, {passive:true});
 ledB.addEventListener('change', syncFromCheckboxes, {passive:true});
