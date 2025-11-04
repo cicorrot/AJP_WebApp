@@ -200,15 +200,6 @@ async function startNotifications(){
       swVersionEl.textContent = dec.decode(e.target.value.buffer || e.target.value);
     }, {passive:true});
   }
-  if(chTemp){
-    await chTemp.startNotifications();
-    chTemp.addEventListener('characteristicvaluechanged', e=>{
-      const dv = new DataView(e.target.value.buffer);
-      const floatRaw = dv.getFloat32(0, true);
-      const t = floatRaw/10;
-      tempEl.textContent = `${t.toFixed(1)} °C`;
-    }, {passive:true});
-  }
 }
 
 /* -----------------------------------------------------------------------------
