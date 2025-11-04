@@ -95,15 +95,16 @@ html, body{
 
 .ear-wrap{
   position:relative;
+  padding: 0px 0px 0px 0px;
+  margin: 0px 0px 0px 0px;
 
   height:100%;
-  max-height:calc(83dvh - var(--sheet-peek) - 20px); 
+  max-height:calc(85dvh - var(--sheet-peek) - 20px); 
   border-radius:12px;
   overflow:hidden;
   display:flex;
   justify-content:center;
   align-items:center;
-  background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0));
   border:1px solid rgba(255,255,255,.10);
 }
 .ear-wrap img{
