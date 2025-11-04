@@ -275,10 +275,6 @@ ledR.addEventListener('change', ()=>{ syncFromCheckboxes(); updateLedButtons(); 
 ledG.addEventListener('change', ()=>{ syncFromCheckboxes(); updateLedButtons(); }, {passive:true});
 ledB.addEventListener('change', ()=>{ syncFromCheckboxes(); updateLedButtons(); }, {passive:true});
 
-colorPicker.addEventListener('input', e=>{
-  setFromColor(e.target.value);
-  updateLedButtons();
-}, {passive:true});
 
 allOffBtn.addEventListener('click', ()=>{
   ledR.checked = ledG.checked = ledB.checked = false;
