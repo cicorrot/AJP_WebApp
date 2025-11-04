@@ -40,6 +40,10 @@ const allOffBtn = document.getElementById('allOff');
 const swVersionEl = document.getElementById('swVersion');
 const tempEl = document.getElementById('temp');
 const iosHelper = document.getElementById('iosHelper');
+const btnLedR = document.getElementById('btnLedR');
+const btnLedG = document.getElementById('btnLedG');
+const btnLedB = document.getElementById('btnLedB');
+
 
 let device = null, server = null, service = null;
 let chBtn1 = null, chBtn2 = null, chBtn3 = null, chSwv = null, chTemp = null, chLed = null;
@@ -109,6 +113,11 @@ function updateLedVisual(){
   const col = currentColor();
   ledCircle.setAttribute('fill', col);
   ledPreview.style.background = col;
+}
+function updateLedButtons(){
+  btnLedR?.classList.toggle('on', ledR.checked);
+  btnLedG?.classList.toggle('on', ledG.checked);
+  btnLedB?.classList.toggle('on', ledB.checked);
 }
 
 /* -----------------------------------------------------------------------------
@@ -207,6 +216,7 @@ async function startNotifications(){
 ----------------------------------------------------------------------------- */
 async function writeLedChannel(channel, on){
   updateLedVisual();
+  updateLedButtons();
   if(!chLed){ log('LED characteristic not found — UI updated only.'); return; }
   try{
     const payload = new Uint8Array([0x00, channel, on ? 0x01 : 0x00]);
@@ -225,6 +235,7 @@ function setFromColor(hex){
   const b = parseInt(hex.slice(5,7),16) > 127;
   ledR.checked = r; ledG.checked = g; ledB.checked = b;
   updateLedVisual();
+  updateLedButtons();
   syncFromCheckboxes();
 }
 
@@ -242,13 +253,37 @@ disconnectBtn.addEventListener('click', () => {
   disconnect();             // trennt und gibt WakeLock frei
 }, {passive:true});
 
-ledR.addEventListener('change', syncFromCheckboxes, {passive:true});
-ledG.addEventListener('change', syncFromCheckboxes, {passive:true});
-ledB.addEventListener('change', syncFromCheckboxes, {passive:true});
-colorPicker.addEventListener('input', e=> setFromColor(e.target.value), {passive:true});
+btnLedR?.addEventListener('click', ()=>{
+  ledR.checked = !ledR.checked;
+  syncFromCheckboxes();
+  updateLedButtons();
+}, {passive:true});
+
+btnLedG?.addEventListener('click', ()=>{
+  ledG.checked = !ledG.checked;
+  syncFromCheckboxes();
+  updateLedButtons();
+}, {passive:true});
+
+btnLedB?.addEventListener('click', ()=>{
+  ledB.checked = !ledB.checked;
+  syncFromCheckboxes();
+  updateLedButtons();
+}, {passive:true});
+
+ledR.addEventListener('change', ()=>{ syncFromCheckboxes(); updateLedButtons(); }, {passive:true});
+ledG.addEventListener('change', ()=>{ syncFromCheckboxes(); updateLedButtons(); }, {passive:true});
+ledB.addEventListener('change', ()=>{ syncFromCheckboxes(); updateLedButtons(); }, {passive:true});
+
+colorPicker.addEventListener('input', e=>{
+  setFromColor(e.target.value);
+  updateLedButtons();
+}, {passive:true});
+
 allOffBtn.addEventListener('click', ()=>{
   ledR.checked = ledG.checked = ledB.checked = false;
   syncFromCheckboxes();
+  updateLedButtons();
 }, {passive:true});
 
 const sim = (box, pad)=>{
@@ -261,6 +296,7 @@ document.getElementById('simB3').addEventListener('pointerdown', ()=>sim(b3,pad3
 
 setConn(false);
 updateLedVisual();
+updateLedButtons();
 if(IS_IOS && !('bluetooth' in navigator)){ iosHelper.style.display = 'block'; }
 log('UI ready. PWA + Service Worker active.');
 

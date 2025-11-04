@@ -274,3 +274,60 @@ button.btn[disabled]{ opacity:.55; cursor:not-allowed }
 
 /* Focus sichtbar halten */
 :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:6px }
+
+/* --- Quick LED buttons (full-width layout) ------------------------------ */
+.led-fabs{
+  position:absolute;
+  bottom:16px;
+  left:0;
+  width:100%;
+  display:flex;
+  justify-content:space-around;  /* verteilt gleichmäßig über Breite */
+  align-items:center;
+  z-index:5;
+  padding:0 8px;
+}
+
+.led-btn{
+  flex:1;
+  max-width:120px;               /* etwas limitieren, damit’s auf Tablets schön passt */
+  height:60px;                   /* größerer Fingertreffer */
+  border-radius:14px;
+  border:1px solid var(--stroke);
+  background:rgba(255,255,255,0.08);
+  color:var(--text);
+  font-weight:700;
+  font-size:17px;
+  letter-spacing:0.5px;
+  font-family:inherit;
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  box-shadow:0 6px 18px rgba(0,0,0,.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  touch-action: manipulation;
+  transition:transform 0.15s ease, background 0.2s ease;
+}
+
+.led-btn:active{ transform:scale(0.96); }
+.led-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px }
+
+.led-btn.led-r.on{
+  background:#ff5a5a;
+  color:#0b0f12;
+  border-color:transparent;
+  box-shadow:0 8px 22px rgba(255,90,90,.45);
+}
+.led-btn.led-g.on{
+  background:#2ecc71;
+  color:#0b0f12;
+  border-color:transparent;
+  box-shadow:0 8px 22px rgba(46,204,113,.45);
+}
+.led-btn.led-b.on{
+  background:#3da8ff;
+  color:#0b0f12;
+  border-color:transparent;
+  box-shadow:0 8px 22px rgba(61,168,255,.45);
+}

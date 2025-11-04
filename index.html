@@ -32,6 +32,12 @@
             <circle id="pad3" class="pad" cx="272" cy="615" r="30"></circle>
             <circle id="ledCircle" class="led-glow" cx="260" cy="330" r="10"></circle>
           </svg>
+          <!-- Quick LED controls overlay -->
+          <div class="led-fabs" aria-label="Quick LED controls">
+            <button id="btnLedR" class="led-btn led-r" title="Toggle red LED">R</button>
+            <button id="btnLedG" class="led-btn led-g" title="Toggle green LED">G</button>
+            <button id="btnLedB" class="led-btn led-b" title="Toggle blue LED">B</button>
+          </div>
         </figure>
       </div>
     </div>
@@ -75,7 +81,6 @@
           <label class="chip"><span class="dot r"></span><input id="ledR" type="checkbox" aria-label="LED Red">R</label>
           <label class="chip"><span class="dot g"></span><input id="ledG" type="checkbox" aria-label="LED Green">G</label>
           <label class="chip"><span class="dot b"></span><input id="ledB" type="checkbox" aria-label="LED Blue">B</label>
-          <input id="colorPicker" type="color" value="#000000" title="Color picker" class="color-input"/>
           <button id="allOff" class="btn btn-compact">all off</button>
         </div>
       </div>
