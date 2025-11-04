@@ -8,8 +8,8 @@
     { "src": "icons/pwa-512x512.png", "sizes": "512x512", "type": "image/png" },
     { "src": "icons/maskable-icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
-  "theme_color": "#0b0f12",
-  "background_color": "#0b0f12",
+  "theme_color": "#121821",
+  "background_color": "#121821",
   "display": "standalone",
   "orientation": "landscape"
 }
