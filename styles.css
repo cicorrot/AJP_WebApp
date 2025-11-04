@@ -163,10 +163,18 @@ html, body{
 .muted{ color:var(--muted); font-size:12px }
 .sum-right{ display:flex; align-items:center; gap:10px }
 .chev{
-  width:10px; height:10px; border-right:2px solid #b8ccdd; border-bottom:2px solid #b8ccdd;
-  transform:rotate(45deg); transition:transform 160ms ease;
+  width:10px;
+  height:10px;
+  border-right:2px solid #b8ccdd;
+  border-bottom:2px solid #b8ccdd;
+  transform:rotate(225deg);  /* Pfeil nach unten */
+  transition:transform 160ms ease;
 }
-.sheet[open] .chev{ transform:rotate(-135deg); }
+
+.sheet[open] .chev{
+  transform:rotate(45deg);   /* Pfeil nach oben (180° gedreht) */
+}
+
 
 .sheet-body{
   padding:10px 16px 16px;
