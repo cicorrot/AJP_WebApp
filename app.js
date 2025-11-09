@@ -4,14 +4,12 @@
 const NAME_PREFIX = 'CICOR';
 const SERVICE_UUID = '0000fe40-cc7a-482a-984a-7f2ed5b3e58f';
 const CH_BTN1_UUID = '0000fe42-8e22-4541-9d4c-21edae82ed01';
-const CH_BTN2_UUID = '0000fe42-8e22-4541-9d4c-21edae82ed02';
-const CH_BTN3_UUID = '0000fe42-8e22-4541-9d4c-21edae82ed03';
-const CH_SWV_UUID  = '0000fe42-8e22-4541-9d4c-21edae82ed04';
-const CH_TEMP_UUID = '0000fe42-8e22-4541-9d4c-21edae82ed05';
+const CH_BTN2_UUID = '0000fe42-8e22-4541-9d4c-21edae82ed03';
+const CH_BTN3_UUID = '0000fe42-8e22-4541-9d4c-21edae82ed02';
 const CH_LED_UUID  = '0000fe41-8e22-4541-9d4c-21edae82ed19';
 const CH_RED  = 0x01;
-const CH_BLUE = 0x02;
-const CH_GRN  = 0x03;
+const CH_BLUE = 0x03;
+const CH_GRN  = 0x02;
 
 const IS_IOS = /iPad|iPhone|iPod/.test(navigator.platform)
             || (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
@@ -35,10 +33,6 @@ const ledPreview = document.getElementById('ledPreview');
 const ledR = document.getElementById('ledR');
 const ledG = document.getElementById('ledG');
 const ledB = document.getElementById('ledB');
-const colorPicker = document.getElementById('colorPicker');
-const allOffBtn = document.getElementById('allOff');
-const swVersionEl = document.getElementById('swVersion');
-const tempEl = document.getElementById('temp');
 const iosHelper = document.getElementById('iosHelper');
 const btnLedR = document.getElementById('btnLedR');
 const btnLedG = document.getElementById('btnLedG');
@@ -46,7 +40,7 @@ const btnLedB = document.getElementById('btnLedB');
 
 
 let device = null, server = null, service = null;
-let chBtn1 = null, chBtn2 = null, chBtn3 = null, chSwv = null, chTemp = null, chLed = null;
+let chBtn1 = null, chBtn2 = null, chBtn3 = null,  chLed = null;
 
 /* -----------------------------------------------------------------------------
    Wake Lock (Screen on) — Variante A
@@ -149,8 +143,6 @@ async function connectBLE(){
     chBtn1 = chars.find(c=>c.uuid.toLowerCase()===CH_BTN1_UUID);
     chBtn2 = chars.find(c=>c.uuid.toLowerCase()===CH_BTN2_UUID);
     chBtn3 = chars.find(c=>c.uuid.toLowerCase()===CH_BTN3_UUID);
-    chSwv  = chars.find(c=>c.uuid.toLowerCase()===CH_SWV_UUID);
-    chTemp = chars.find(c=>c.uuid.toLowerCase()===CH_TEMP_UUID);
     chLed  = chars.find(c=>c.uuid.toLowerCase()===CH_LED_UUID);
 
     await startNotifications();
@@ -167,7 +159,7 @@ function onDisconnected(){
   // Sicherheit: bei Disconnect den WakeLock freigeben
   releaseWakeLock();
 }
-function clearHandles(){ chBtn1=chBtn2=chBtn3=chSwv=chTemp=chLed=null; }
+function clearHandles(){ chBtn1=chBtn2=chBtn3=chLed=null; }
 async function disconnect(){
   try{
     if(device && device.gatt.connected){ device.gatt.disconnect(); }
@@ -193,14 +185,10 @@ async function startNotifications(){
   if(chBtn2){ await chBtn2.startNotifications(); chBtn2.addEventListener('characteristicvaluechanged', onBtn(b2,pad2), {passive:true}); }
   if(chBtn3){ await chBtn3.startNotifications(); chBtn3.addEventListener('characteristicvaluechanged', onBtn(b3,pad3), {passive:true}); }
 
-  if(chSwv){
-    await chSwv.startNotifications();
-    chSwv.addEventListener('characteristicvaluechanged', e=>{
-      const dec = new TextDecoder();
-      swVersionEl.textContent = dec.decode(e.target.value.buffer || e.target.value);
-    }, {passive:true});
-  }
+
 }
+
+
 
 /* -----------------------------------------------------------------------------
    LED control
@@ -215,20 +203,13 @@ async function writeLedChannel(channel, on){
     log(`LED ch=${channel} -> ${on ? 'on' : 'off'}`);
   }catch(e){ log('LED write error:', e.message); }
 }
-function syncFromCheckboxes(){
-  writeLedChannel(CH_RED,  ledR.checked);
-  writeLedChannel(CH_GRN,  ledG.checked);
-  writeLedChannel(CH_BLUE, ledB.checked);
+function syncFromCheckboxes(RGB){
+  if (RGB == CH_RED){ writeLedChannel(CH_RED,  ledR.checked); }
+  if (RGB == CH_GRN){ writeLedChannel(CH_GRN,  ledG.checked); }
+  if (RGB == CH_BLUE){ writeLedChannel(CH_BLUE, ledB.checked); }
+
 }
-function setFromColor(hex){
-  const r = parseInt(hex.slice(1,3),16) > 127;
-  const g = parseInt(hex.slice(3,5),16) > 127;
-  const b = parseInt(hex.slice(5,7),16) > 127;
-  ledR.checked = r; ledG.checked = g; ledB.checked = b;
-  updateLedVisual();
-  updateLedButtons();
-  syncFromCheckboxes();
-}
+
 
 /* -----------------------------------------------------------------------------
    Events & Boot
@@ -246,32 +227,26 @@ disconnectBtn.addEventListener('click', () => {
 
 btnLedR?.addEventListener('click', ()=>{
   ledR.checked = !ledR.checked;
-  syncFromCheckboxes();
+  syncFromCheckboxes(CH_RED);
   updateLedButtons();
 }, {passive:true});
 
 btnLedG?.addEventListener('click', ()=>{
   ledG.checked = !ledG.checked;
-  syncFromCheckboxes();
+  syncFromCheckboxes(CH_GRN);
   updateLedButtons();
 }, {passive:true});
 
 btnLedB?.addEventListener('click', ()=>{
   ledB.checked = !ledB.checked;
-  syncFromCheckboxes();
+  syncFromCheckboxes(CH_BLUE);
   updateLedButtons();
 }, {passive:true});
 
-ledR.addEventListener('change', ()=>{ syncFromCheckboxes(); updateLedButtons(); }, {passive:true});
-ledG.addEventListener('change', ()=>{ syncFromCheckboxes(); updateLedButtons(); }, {passive:true});
-ledB.addEventListener('change', ()=>{ syncFromCheckboxes(); updateLedButtons(); }, {passive:true});
+ledR.addEventListener('change', ()=>{ syncFromCheckboxes(CH_RED); updateLedButtons(); }, {passive:true});
+ledG.addEventListener('change', ()=>{ syncFromCheckboxes(CH_GRN); updateLedButtons(); }, {passive:true});
+ledB.addEventListener('change', ()=>{ syncFromCheckboxes(CH_BLUE); updateLedButtons(); }, {passive:true});
 
-
-allOffBtn.addEventListener('click', ()=>{
-  ledR.checked = ledG.checked = ledB.checked = false;
-  syncFromCheckboxes();
-  updateLedButtons();
-}, {passive:true});
 
 const sim = (box, pad)=>{
   box.textContent='pressed'; setPad(pad,true);
