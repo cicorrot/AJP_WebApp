@@ -130,8 +130,8 @@ async function connectBLE(){
       optionalServices: [SERVICE_UUID]
     });
     device.addEventListener('gattserverdisconnected', onDisconnected);
-    deviceNameEl.textContent = device.name || device.id || 'Device';
-    log('Selected:', device.name || device.id);
+    deviceNameEl.textContent = device.name ;
+    log('Selected:', device.name );
 
     server  = await device.gatt.connect();
     setConn(true, device.name || device.id);
