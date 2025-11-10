@@ -3,13 +3,13 @@
 ----------------------------------------------------------------------------- */
 const NAME_PREFIX = 'CICOR';
 const SERVICE_UUID = '0000fe40-cc7a-482a-984a-7f2ed5b3e58f';
-const CH_BTN1_UUID = '0000fe42-8e22-4541-9d4c-21edae82ed01';
+const CH_BTN1_UUID = '0000fe42-8e22-4541-9d4c-21edae82ed02';
 const CH_BTN2_UUID = '0000fe42-8e22-4541-9d4c-21edae82ed03';
-const CH_BTN3_UUID = '0000fe42-8e22-4541-9d4c-21edae82ed02';
+const CH_BTN3_UUID = '0000fe42-8e22-4541-9d4c-21edae82ed01';
 const CH_LED_UUID  = '0000fe41-8e22-4541-9d4c-21edae82ed19';
 const CH_RED  = 0x01;
-const CH_BLUE = 0x03;
-const CH_GRN  = 0x02;
+const CH_BLUE = 0x02;
+const CH_GRN  = 0x03;
 
 const IS_IOS = /iPad|iPhone|iPod/.test(navigator.platform)
             || (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
